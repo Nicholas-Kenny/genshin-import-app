@@ -20,38 +20,11 @@ Ikuti langkah-langkah di bawah ini secara berurutan untuk menyalakan server back
 1. Nyalakan modul **MySQL** (misal: via XAMPP Control Panel).
 2. Buka phpMyAdmin (biasanya di `http://localhost/phpmyadmin`).
 3. Buat database baru bernama `genshin_import_db`.
-4. Jalankan query SQL di bawah ini untuk membuat tabel dan menyuntikkan 1 akun Admin:
+4. import database_schema.sql ke dalam database
 
-```sql
--- Buat Tabel Users
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255),
-    role ENUM('admin', 'customer') DEFAULT 'customer',
-    oauth_provider VARCHAR(50) DEFAULT 'local',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Buat Tabel Items
-CREATE TABLE items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    category ENUM('Weapons', 'Artifacts') NOT NULL,
-    description TEXT,
-    stock INT DEFAULT 0,
-    price INT NOT NULL,
-    stars INT DEFAULT 4,
-    image_url VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Buat Akun Admin Default (Password belum di-hash, pastikan register ulang via Postman jika ingin fitur login aman)
-INSERT INTO users (username, email, password, role) 
-VALUES ('admin_gacha', 'admin@genshinimport.com', 'admin1234', 'admin');
-```
+Untuk login admin : 
+usename : admin
+password : admin123
 
 ### 2. Setup Environment Variables (.env)
 Karena file .env bersifat rahasia dan tidak diunggah ke GitHub, Anda harus membuatnya secara manual.
