@@ -69,8 +69,7 @@ Setelah server Backend menyala, Anda bisa menjalankan aplikasi mobile-nya.
 Bash
 flutter pub get
 
-4. Jalankan aplikasi (pilih emulator atau device yang tersedia):
+4. Jalankan aplikasi:
 
 Bash
-flutter run
-"# genshin-import-app" 
+flutter run -d chrome --web-port=5000
