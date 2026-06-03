@@ -140,6 +140,9 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   Widget _buildItemCard(dynamic item) {
+    final int stock = item['stock'] ?? 0;
+    final bool isOutOfStock = stock <= 0;
+
     final hasImage =
         item['image_url'] != null && item['image_url'].toString().isNotEmpty;
 
@@ -248,18 +251,23 @@ class _CatalogPageState extends State<CatalogPage> {
                       width: double.infinity,
                       height: 35,
                       child: ElevatedButton(
-                        onPressed: () {
-                          cart.addToCart(item);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${item['name']} added to cart!'),
-                              duration: const Duration(seconds: 1),
-                              backgroundColor: const Color(0xFF2A2A38),
-                            ),
-                          );
-                        },
+                        onPressed: isOutOfStock
+                            ? null
+                            : () {
+                                if (inCart) return;
+                                cart.addToCart(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item['name']} added to cart!',
+                                    ),
+                                    duration: const Duration(seconds: 1),
+                                    backgroundColor: const Color(0xFF2A2A38),
+                                  ),
+                                );
+                              },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: inCart
+                          backgroundColor: isOutOfStock || inCart
                               ? Colors.grey.shade700
                               : const Color(0xFFD4AF37),
                           shape: RoundedRectangleBorder(
@@ -267,9 +275,13 @@ class _CatalogPageState extends State<CatalogPage> {
                           ),
                         ),
                         child: Text(
-                          inCart ? 'In Cart ✓' : 'Add to Cart',
+                          isOutOfStock
+                              ? 'Out of Stock'
+                              : (inCart ? 'In Cart ✓' : 'Add to Cart'),
                           style: TextStyle(
-                            color: inCart ? Colors.white70 : Colors.black,
+                            color: isOutOfStock || inCart
+                                ? Colors.white70
+                                : Colors.black,
                           ),
                         ),
                       ),

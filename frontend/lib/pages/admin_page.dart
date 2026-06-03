@@ -71,6 +71,7 @@ class _AdminPageState extends State<AdminPage> {
     );
 
     String selectedCategory = isEdit ? item['category'] : 'Weapons';
+    int selectedStars = isEdit ? (item['stars'] ?? 5) : 5;
     XFile? selectedImage;
 
     showDialog(
@@ -147,6 +148,24 @@ class _AdminPageState extends State<AdminPage> {
                       }).toList(),
                       onChanged: (value) =>
                           setStateDialog(() => selectedCategory = value!),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      value: selectedStars,
+                      dropdownColor: const Color(0xFF2A2A38),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: 'Rarity (Stars)',
+                        labelStyle: TextStyle(color: Colors.grey),
+                      ),
+                      items: [1, 2, 3, 4, 5].map((int star) {
+                        return DropdownMenuItem<int>(
+                          value: star,
+                          child: Text('$star Stars'),
+                        );
+                      }).toList(),
+                      onChanged: (value) =>
+                          setStateDialog(() => selectedStars = value!),
                     ),
                     const SizedBox(height: 20),
                     Container(
@@ -235,7 +254,7 @@ class _AdminPageState extends State<AdminPage> {
                         description: descController.text,
                         stock: int.tryParse(stockController.text) ?? 0,
                         price: int.tryParse(priceController.text) ?? 0,
-                        stars: 5,
+                        stars: selectedStars,
                         existingImageUrl: item['image_url'],
                         newImageFile: selectedImage,
                       );
@@ -248,7 +267,7 @@ class _AdminPageState extends State<AdminPage> {
                         description: descController.text,
                         stock: int.tryParse(stockController.text) ?? 0,
                         price: int.tryParse(priceController.text) ?? 0,
-                        stars: 5,
+                        stars: selectedStars,
                         imageFile: selectedImage,
                       );
                     }
@@ -411,6 +430,18 @@ class _AdminPageState extends State<AdminPage> {
                                             ),
                                           ),
                                         ],
+                                      ),
+                                      const SizedBox(height: 4),
+
+                                      Row(
+                                        children: List.generate(
+                                          item['stars'] ?? 5,
+                                          (i) => const Icon(
+                                            Icons.star,
+                                            color: Colors.amber,
+                                            size: 14,
+                                          ),
+                                        ),
                                       ),
                                       Text(
                                         'Type: ${item['type']}',

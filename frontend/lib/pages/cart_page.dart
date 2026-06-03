@@ -131,7 +131,9 @@ class CartPage extends StatelessWidget {
                                       ),
                                       _QtyButton(
                                         icon: Icons.add,
-                                        onTap: () => cart.incrementQty(item.id),
+                                        onTap: item.qty >= item.stock
+                                            ? null
+                                            : () => cart.incrementQty(item.id),
                                       ),
                                     ],
                                   ),
@@ -240,12 +242,13 @@ class CartPage extends StatelessWidget {
 
 class _QtyButton extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _QtyButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final bool disabled = onTap == null;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
@@ -255,6 +258,7 @@ class _QtyButton extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.white24),
           borderRadius: BorderRadius.circular(4),
+          color: disabled ? Colors.white12 : Colors.transparent,
         ),
         child: Icon(icon, size: 16, color: Colors.white70),
       ),

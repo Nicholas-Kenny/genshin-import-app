@@ -4,33 +4,63 @@ const db = require("../config/db");
 exports.addToCart = (req, res) => {
   const userId = req.user.id;
   const { item_id, quantity } = req.body;
-  const qty = quantity || 1; // defaultnya 1
+  const qty = quantity || 1;
 
-  const checkQuery = "SELECT * FROM cart WHERE user_id = ? AND item_id = ?";
-  db.query(checkQuery, [userId, item_id], (err, results) => {
+  const checkStockQuery = "SELECT stock FROM items WHERE id = ?";
+  db.query(checkStockQuery, [item_id], (err, stockResults) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-
-    if (results.length > 0) {
-      const updateQuery =
-        "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND item_id = ?";
-      db.query(updateQuery, [qty, userId, item_id], (err, results) => {
-        if (err) {
-          res.status(500).json({ error: err.message });
-        }
-        res.status(200).json({ message: "item(s) successfully added to cart" });
-      });
-    } else {
-      const insertQuery =
-        "INSERT INTO cart(user_id, item_id, quantity) VALUES (?,?,?)";
-      db.query(insertQuery, [userId, item_id, qty], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ message: "Item successfully added to cart" });
-      });
+    if (stockResults.length === 0) {
+      return res.status(404).json({ error: "Item not found" });
     }
+
+    const productStock = stockResults[0].stock;
+
+    if (productStock <= 0) {
+      return res.status(400).json({ error: "Out of stock" });
+    }
+
+    const checkCartQuery =
+      "SELECT quantity FROM cart WHERE user_id = ? AND item_id = ?";
+    db.query(checkCartQuery, [userId, item_id], (err, cartResults) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      let currentQuantity;
+      if (cartResults.length > 0) {
+        currentQuantity = cartResults[0].quantity;
+      } else {
+        currentQuantity = 0;
+      }
+
+      if (currentQuantity + qty > productStock) {
+        return res.status(400).json({ error: "Cannot exceed available stock" });
+      }
+
+      if (cartResults.length > 0) {
+        const updateQuery =
+          "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND item_id = ?";
+        db.query(updateQuery, [qty, userId, item_id], (err, results) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+          }
+          res
+            .status(200)
+            .json({ message: "item(s) successfully added to cart" });
+        });
+      } else {
+        const insertQuery =
+          "INSERT INTO cart(user_id, item_id, quantity) VALUES (?,?,?)";
+        db.query(insertQuery, [userId, item_id, qty], (err, results) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          }
+          res.status(201).json({ message: "Item successfully added to cart" });
+        });
+      }
+    });
   });
 };
 
@@ -39,7 +69,7 @@ exports.getCart = (req, res) => {
   const userId = req.user.id;
 
   const query = `
-    SELECT c.id AS cart_id, c.item_id, i.name, i.type, i.category, i.price, i.image_url, c.quantity
+    SELECT c.id AS cart_id, c.item_id, i.name, i.type, i.category, i.price, i.image_url, i.stock, c.quantity
     FROM cart c 
     JOIN items i ON c.item_id = i.id
     WHERE c.user_id = ?
@@ -93,7 +123,7 @@ exports.checkout = (req, res) => {
         db.query(
           updateStockQuery,
           [item.quantity, item.item_id],
-          (err, stockResult) => {
+          (err, stockResults) => {
             if (isResponded) return;
 
             if (err) {
@@ -156,14 +186,16 @@ exports.reduceCart = (req, res) => {
     if (results.length > 0) {
       if (results[0].quantity > 1) {
         // Jika qty lebih dari 1, kurangi 1
-        const updateQuery = "UPDATE cart SET quantity = quantity - 1 WHERE user_id = ? AND item_id = ?";
+        const updateQuery =
+          "UPDATE cart SET quantity = quantity - 1 WHERE user_id = ? AND item_id = ?";
         db.query(updateQuery, [userId, item_id], (err) => {
           if (err) return res.status(500).json({ error: err.message });
           res.status(200).json({ message: "Quantity dikurangi" });
         });
       } else {
         // Jika qty sisa 1, hapus dari keranjang
-        const deleteQuery = "DELETE FROM cart WHERE user_id = ? AND item_id = ?";
+        const deleteQuery =
+          "DELETE FROM cart WHERE user_id = ? AND item_id = ?";
         db.query(deleteQuery, [userId, item_id], (err) => {
           if (err) return res.status(500).json({ error: err.message });
           res.status(200).json({ message: "Item dihapus dari keranjang" });

@@ -9,6 +9,7 @@ class CartItem {
   final String name;
   final int price;
   final String? imageUrl;
+  final int stock;
   int qty;
 
   CartItem({
@@ -16,6 +17,7 @@ class CartItem {
     required this.name,
     required this.price,
     this.imageUrl,
+    required this.stock,
     this.qty = 1,
   });
 }
@@ -70,6 +72,7 @@ class CartProvider extends ChangeNotifier {
               name: e['name'].toString(),
               price: (e['price'] as num).toInt(),
               imageUrl: e['image_url']?.toString(),
+              stock: (e['stock'] as num).toInt(),
               qty: (e['quantity'] as num).toInt(),
             ),
           );
@@ -141,6 +144,11 @@ class CartProvider extends ChangeNotifier {
   }
 
   Future<void> incrementQty(int id) async {
+    final itemIdx = _cartItems.indexWhere((e) => e.id == id);
+    if (itemIdx >= 0) {
+      final item = _cartItems[itemIdx];
+      if (item.qty >= item.stock) return;
+    }
     await addToCart({'id': id});
   }
 
