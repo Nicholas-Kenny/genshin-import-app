@@ -10,6 +10,7 @@ import 'package:frontend/pages/login_page.dart';
 import 'package:frontend/pages/main_screen.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/register_page.dart';
+import 'package:frontend/theme/app_colors.dart';
 
 void main() {
   runApp(const GenshinImportApp());
@@ -26,13 +27,46 @@ class GenshinImportApp extends StatelessWidget {
         title: 'Genshin Import',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          scaffoldBackgroundColor: const Color(0xFF1C1C28),
-          primaryColor: const Color(0xFFD4AF37),
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: AppColors.bgBlue,
+          primaryColor: AppColors.primaryBlue,
           colorScheme: const ColorScheme.dark(
-            primary: Color(0xFFD4AF37),
-            secondary: Colors.blueAccent,
+            primary: AppColors.highlight,
+            secondary: AppColors.highlightSecondary,
+            surface: AppColors.secondaryBlue,
           ),
-          fontFamily: 'Serif',
+          textTheme: const TextTheme(
+            displayLarge: TextStyle(
+              fontFamily: 'HYWenHei',
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryText,
+            ),
+            headlineLarge: TextStyle(
+              fontFamily: 'HYWenHei',
+              fontSize: 25,
+              fontWeight: FontWeight.w800,
+              color: AppColors.primaryText,
+            ),
+            headlineMedium: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryText,
+            ),
+            headlineSmall: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryText,
+            ),
+            bodyMedium: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primaryText,
+            ),
+          ),
         ),
         initialRoute: '/login',
         routes: {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/services/api_service.dart';
+import '../services/api_service.dart';
+import '../theme/app_colors.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -10,33 +11,25 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  String username = '';
-  String email = '';
-  String password = '';
+  String username = '', email = '', password = '';
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
-  void _register() async {
-    // MENJALANKAN VALIDASI FORM
+  void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
       setState(() => _isLoading = true);
-      bool isSuccess = await ApiService.register(username, email, password);
+      bool success = await ApiService.register(username, email, password);
       setState(() => _isLoading = false);
-
-      if (!mounted) return;
-      if (isSuccess) {
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Please login.'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Registration Success! Please Login.')),
         );
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Register failed. Username/Email might be taken.'),
+            content: Text('Registration Failed!'),
             backgroundColor: Colors.red,
           ),
         );
@@ -46,105 +39,197 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey, // Pasang form key untuk membaca validasi
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      backgroundColor: AppColors.bg2,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
               children: [
-                const Text(
-                  'Genshin Import',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const Text(
-                  'Join the Adventurer Guild!',
-                  style: TextStyle(color: Color(0xFFD4AF37)),
-                ),
-                const SizedBox(height: 40),
-
-                // VALIDASI 1: Check Empty
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) => value == null || value.trim().isEmpty
-                      ? 'Username cannot be empty'
-                      : null,
-                  onSaved: (value) => username = value?.trim() ?? '',
-                ),
-                const SizedBox(height: 16),
-
-                // VALIDASI 2: Email Pattern Check
-                TextFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty)
-                      return 'Email cannot be empty';
-                    if (!value.contains('@') || !value.contains('.'))
-                      return 'Enter a valid email address';
-                    return null;
-                  },
-                  onSaved: (value) => email = value?.trim() ?? '',
-                ),
-                const SizedBox(height: 16),
-
-                // VALIDASI 3: Minimum Character Length Check
-                TextFormField(
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty)
-                      return 'Password cannot be empty';
-                    if (value.length < 8)
-                      return 'Password must be at least 8 characters';
-                    return null;
-                  },
-                  onSaved: (value) => password = value ?? '',
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
+                Container(
+                  height: 300,
                   width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFD4AF37),
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/register_bg.png'),
+                      fit: BoxFit.cover,
                     ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.black)
-                        : const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, AppColors.bg2],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Colors.white24,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 32,
+                              height: 32,
+                              fit: BoxFit.contain,
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Genshin Import",
+                            style: textTheme.displayLarge?.copyWith(
+                              fontSize: 32,
+                              color: AppColors.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Join the Adventurer Guild!",
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.highlight,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Already have an account? Log In"),
                 ),
               ],
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(30),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Username",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildField(
+                      hint: "Enter Username",
+                      onSaved: (v) => username = v!,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "Email",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildField(
+                      hint: "Enter Email Address",
+                      onSaved: (v) => email = v!,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "Password",
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildField(
+                      hint: "Min. 8 characters",
+                      isPassword: true,
+                      onSaved: (v) => password = v!,
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleRegister,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.highlight,
+                        ),
+                        child: Text(
+                          "Sign Up",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.bg2,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Already have an account? Log In",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.primaryText.withOpacity(0.7),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildField({
+    required String hint,
+    bool isPassword = false,
+    Function(String?)? onSaved,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return TextFormField(
+      obscureText: isPassword && !_isPasswordVisible,
+      style: textTheme.bodyMedium?.copyWith(color: AppColors.primaryText),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: AppColors.primaryText.withOpacity(0.38),
+        ),
+        filled: true,
+        fillColor: AppColors.primaryBlue,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: AppColors.primaryText.withOpacity(0.38),
+                ),
+                onPressed: () =>
+                    setState(() => _isPasswordVisible = !_isPasswordVisible),
+              )
+            : null,
+      ),
+      validator: (v) => v == null || v.isEmpty
+          ? 'Required'
+          : (isPassword && v.length < 8 ? 'Min 8 characters' : null),
+      onSaved: onSaved,
     );
   }
 }

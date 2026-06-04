@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
+import '../theme/app_colors.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -15,6 +16,8 @@ class _AdminPageState extends State<AdminPage> {
   List<dynamic> _items = [];
   bool _isLoading = true;
   final ImagePicker _picker = ImagePicker();
+  String _searchQuery = '';
+  String _selectedFilter = 'All items';
 
   @override
   void initState() {
@@ -25,7 +28,6 @@ class _AdminPageState extends State<AdminPage> {
   Future<void> _loadItems() async {
     setState(() => _isLoading = true);
     try {
-      // PERBAIKAN: Pemanggilan fungsi static tanpa tanda kurung instansiasi
       final data = await ApiService.getItems();
       setState(() {
         _items = data;
@@ -36,21 +38,42 @@ class _AdminPageState extends State<AdminPage> {
     }
   }
 
-  void _deleteItem(int id) async {
+  Future<void> _deleteItem(int id) async {
     bool success = await ApiService.deleteItem(id);
     if (success) {
       _loadItems();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Item deleted successfully from database!'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: Text(
+            'Item deleted successfully!',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.redAccent,
         ),
       );
     }
   }
 
-  // DIALOG MULTIFUNGSI: BISA UNTUK TAMBAH (CREATE) & EDIT (UPDATE)
+  List<dynamic> get filteredItems {
+    return _items.where((item) {
+      bool matchesFilter = true;
+      if (_selectedFilter != 'All items') {
+        final searchTerm = _selectedFilter.replaceAll('s', '').toLowerCase();
+        final itemType = item['type'].toString().toLowerCase();
+        final itemCategory = item['category'].toString().toLowerCase();
+        matchesFilter =
+            itemType.contains(searchTerm) || itemCategory.contains(searchTerm);
+      }
+      final matchesSearch = item['name'].toString().toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+      return matchesFilter && matchesSearch;
+    }).toList();
+  }
+
   void _showFormDialog({dynamic item}) {
     final isEdit = item != null;
 
@@ -77,68 +100,56 @@ class _AdminPageState extends State<AdminPage> {
     showDialog(
       context: context,
       builder: (context) {
+        final textTheme = Theme.of(context).textTheme;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF2A2A38),
+              backgroundColor: AppColors.primaryBlue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               title: Text(
-                isEdit ? 'Update Item in MySQL' : 'Add New Item to MySQL',
-                style: const TextStyle(color: Color(0xFFD4AF37)),
+                isEdit ? 'Update Item' : 'Add New Item',
+                style: textTheme.headlineSmall?.copyWith(
+                  color: AppColors.highlight,
+                ),
               ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(
-                      controller: nameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Item Name',
-                        labelStyle: TextStyle(color: Colors.grey),
-                      ),
+                    _buildDialogTextField(nameController, 'Item Name'),
+                    _buildDialogTextField(
+                      typeController,
+                      'Type (ex: Sword/Flower)',
                     ),
-                    TextField(
-                      controller: typeController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Type (ex: Sword/Flower)',
-                        labelStyle: TextStyle(color: Colors.grey),
-                      ),
+                    _buildDialogTextField(descController, 'Description'),
+                    _buildDialogTextField(
+                      priceController,
+                      'Price (Mora)',
+                      isNumber: true,
                     ),
-                    TextField(
-                      controller: descController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                        labelStyle: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                    TextField(
-                      controller: priceController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Price (Mora)',
-                        labelStyle: TextStyle(color: Colors.grey),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                    TextField(
-                      controller: stockController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        labelText: 'Stock',
-                        labelStyle: TextStyle(color: Colors.grey),
-                      ),
-                      keyboardType: TextInputType.number,
+                    _buildDialogTextField(
+                      stockController,
+                      'Stock',
+                      isNumber: true,
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: selectedCategory,
-                      dropdownColor: const Color(0xFF2A2A38),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      dropdownColor: AppColors.bgBlue,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText,
+                      ),
+                      decoration: InputDecoration(
                         labelText: 'Category',
-                        labelStyle: TextStyle(color: Colors.grey),
+                        labelStyle: const TextStyle(color: Colors.grey),
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white24),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.highlight),
+                        ),
                       ),
                       items: ['Weapons', 'Artifacts'].map((String cat) {
                         return DropdownMenuItem<String>(
@@ -152,11 +163,19 @@ class _AdminPageState extends State<AdminPage> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       value: selectedStars,
-                      dropdownColor: const Color(0xFF2A2A38),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      dropdownColor: AppColors.bgBlue,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText,
+                      ),
+                      decoration: InputDecoration(
                         labelText: 'Rarity (Stars)',
-                        labelStyle: TextStyle(color: Colors.grey),
+                        labelStyle: const TextStyle(color: Colors.grey),
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white24),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.highlight),
+                        ),
                       ),
                       items: [1, 2, 3, 4, 5].map((int star) {
                         return DropdownMenuItem<int>(
@@ -172,12 +191,14 @@ class _AdminPageState extends State<AdminPage> {
                       height: 120,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade800,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey.shade600),
+                        color: AppColors.bgBlue,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.highlight.withOpacity(0.3),
+                        ),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         child: selectedImage != null
                             ? (kIsWeb
                                   ? Image.network(
@@ -188,15 +209,18 @@ class _AdminPageState extends State<AdminPage> {
                                       File(selectedImage!.path),
                                       fit: BoxFit.cover,
                                     ))
-                            : (isEdit && item['image_url'] != null
+                            : (isEdit &&
+                                      item['image_url'] != null &&
+                                      item['image_url'].toString().isNotEmpty
                                   ? Image.network(
                                       item['image_url'],
                                       fit: BoxFit.cover,
                                     )
-                                  : const Center(
+                                  : Center(
                                       child: Icon(
                                         Icons.add_a_photo,
-                                        color: Colors.white54,
+                                        color: AppColors.primaryText
+                                            .withOpacity(0.54),
                                         size: 40,
                                       ),
                                     )),
@@ -214,16 +238,22 @@ class _AdminPageState extends State<AdminPage> {
                             setStateDialog(() => selectedImage = image);
                           }
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.photo_library,
-                          color: Color(0xFFD4AF37),
+                          color: AppColors.highlight,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Select from Gallery',
-                          style: TextStyle(color: Color(0xFFD4AF37)),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.highlight,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD4AF37)),
+                          side: BorderSide(color: AppColors.highlight),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ),
@@ -233,9 +263,12 @@ class _AdminPageState extends State<AdminPage> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: Colors.grey),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 ElevatedButton(
@@ -245,7 +278,6 @@ class _AdminPageState extends State<AdminPage> {
 
                     bool success;
                     if (isEdit) {
-                      // KONDISI EDIT / UPDATE
                       success = await ApiService.updateItem(
                         id: item['id'],
                         name: nameController.text,
@@ -259,7 +291,6 @@ class _AdminPageState extends State<AdminPage> {
                         newImageFile: selectedImage,
                       );
                     } else {
-                      // KONDISI TAMBAH BARU
                       success = await ApiService.addItem(
                         name: nameController.text,
                         type: typeController.text,
@@ -281,6 +312,9 @@ class _AdminPageState extends State<AdminPage> {
                             isEdit
                                 ? 'Item updated successfully!'
                                 : 'Item successfully added!',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           backgroundColor: Colors.green,
                         ),
@@ -290,11 +324,17 @@ class _AdminPageState extends State<AdminPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD4AF37),
+                    backgroundColor: AppColors.highlight,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: Text(
-                    isEdit ? 'Update' : 'Add Item',
-                    style: const TextStyle(color: Colors.black),
+                    isEdit ? 'Update' : 'Save',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: AppColors.bgBlue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -305,211 +345,362 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'MANAGE ITEMS',
-          style: TextStyle(
-            color: Color(0xFFD4AF37),
+  Widget _buildDialogTextField(
+    TextEditingController controller,
+    String label, {
+    bool isNumber = false,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+    return TextField(
+      controller: controller,
+      style: textTheme.bodyMedium?.copyWith(color: AppColors.primaryText),
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.grey),
+        enabledBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.white24),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: AppColors.highlight),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterTab(String title) {
+    final isActive = _selectedFilter == title;
+    final textTheme = Theme.of(context).textTheme;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = title;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.highlight : AppColors.primaryBlue,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          title,
+          style: textTheme.bodyMedium?.copyWith(
+            fontSize: 14,
             fontWeight: FontWeight.bold,
-            letterSpacing: 2,
+            color: isActive ? AppColors.bgBlue : AppColors.greyText,
           ),
         ),
-        backgroundColor: const Color(0xFF15151E),
-        iconTheme: const IconThemeData(color: Color(0xFFD4AF37)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Add, Edit, and Delete catalog's items directly from device",
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () => _showFormDialog(),
-                icon: const Icon(Icons.add, color: Colors.black),
-                label: const Text(
-                  'ADD NEW ITEM',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget _buildAdminItemCard(dynamic item) {
+    final textTheme = Theme.of(context).textTheme;
+    final hasImage =
+        item['image_url'] != null && item['image_url'].toString().isNotEmpty;
+    final isWeapon = item['type'].toString().toLowerCase().contains('weapon');
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 84,
+                height: 84,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.highlight.withOpacity(0.5),
+                    width: 1.0,
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD4AF37),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(11),
+                  child: hasImage
+                      ? Image.network(
+                          item['image_url'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.broken_image,
+                            color: AppColors.primaryText.withOpacity(0.24),
+                            size: 28,
+                          ),
+                        )
+                      : Icon(
+                          isWeapon ? Icons.colorize : Icons.diamond,
+                          color: AppColors.highlight.withOpacity(0.5),
+                          size: 32,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item['name'],
+                            style: textTheme.headlineSmall?.copyWith(
+                              fontSize: 18,
+                              color: AppColors.primaryText,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          children: List.generate(
+                            item['stars'] ?? 5,
+                            (i) => Icon(
+                              Icons.star,
+                              color: AppColors.highlight,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${item['type']} - ${item['category']}',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.highlight,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      item['description'] ?? '-',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primaryText,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Stock: ${item['stock']}',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.highlight,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${item['price']} Mora',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: AppColors.highlight,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white10, height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showFormDialog(item: item),
+                    icon: Icon(
+                      Icons.edit,
+                      color: AppColors.highlight,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Edit',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.highlight,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: AppColors.highlight),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _deleteItem(item['id']),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Delete',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent.shade700,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Scaffold(
+      backgroundColor: AppColors.bgBlue,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 20),
+            Center(
+              child: Text(
+                'MANAGE ITEMS',
+                style: textTheme.displayLarge?.copyWith(
+                  fontSize: 26,
+                  letterSpacing: 1.5,
+                  color: AppColors.highlight,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: TextField(
+                style: textTheme.bodyMedium?.copyWith(
+                  color: AppColors.primaryText,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search database...',
+                  hintStyle: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.greyText,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: AppColors.greyText),
+                  filled: true,
+                  fillColor: AppColors.primaryBlue,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (value) => setState(() => _searchQuery = value),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildFilterTab('All items'),
+                  const SizedBox(width: 12),
+                  _buildFilterTab('Weapons'),
+                  const SizedBox(width: 12),
+                  _buildFilterTab('Artifacts'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  height: 36,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showFormDialog(),
+                    icon: Icon(Icons.add, color: AppColors.bgBlue, size: 16),
+                    label: Text(
+                      'Add Item',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: AppColors.bgBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.highlight,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      elevation: 0,
+                    ),
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
+            const Divider(color: Colors.white10, height: 1, thickness: 1),
             Expanded(
               child: _isLoading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFFD4AF37),
+                        color: AppColors.highlight,
                       ),
                     )
-                  : _items.isEmpty
-                  ? const Center(
+                  : filteredItems.isEmpty
+                  ? Center(
                       child: Text(
-                        "No items in catalog database.",
-                        style: TextStyle(color: Colors.grey),
+                        "No items found in database.",
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.greyText,
+                          fontSize: 16,
+                        ),
                       ),
                     )
-                  : ListView.builder(
-                      itemCount: _items.length,
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(24),
+                      itemCount: filteredItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 20),
                       itemBuilder: (context, index) {
-                        final item = _items[index];
-                        final hasImage =
-                            item['image_url'] != null &&
-                            item['image_url'].toString().isNotEmpty;
-
-                        return Card(
-                          color: const Color(0xFF2A2A38),
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 70,
-                                  height: 70,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade700,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: hasImage
-                                        ? Image.network(
-                                            item['image_url'],
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (c, e, s) =>
-                                                const Icon(
-                                                  Icons.broken_image,
-                                                  color: Colors.white54,
-                                                ),
-                                          )
-                                        : const Icon(
-                                            Icons.image,
-                                            color: Colors.white54,
-                                          ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              item['name'],
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          Text(
-                                            '${item['price']} Mora',
-                                            style: const TextStyle(
-                                              color: Color(0xFFD4AF37),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-
-                                      Row(
-                                        children: List.generate(
-                                          item['stars'] ?? 5,
-                                          (i) => const Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                            size: 14,
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        'Type: ${item['type']}',
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${item['stock']} in stock',
-                                        style: const TextStyle(
-                                          color: Colors.greenAccent,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          // TOMBOL EDIT BARU UNTUK SYARAT UPDATE CRUD
-                                          OutlinedButton(
-                                            onPressed: () =>
-                                                _showFormDialog(item: item),
-                                            style: OutlinedButton.styleFrom(
-                                              side: const BorderSide(
-                                                color: Color(0xFFD4AF37),
-                                              ),
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                  ),
-                                            ),
-                                            child: const Text(
-                                              'Edit',
-                                              style: TextStyle(
-                                                color: Color(0xFFD4AF37),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          ElevatedButton(
-                                            onPressed: () =>
-                                                _deleteItem(item['id']),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.red.shade800,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                  ),
-                                            ),
-                                            child: const Text(
-                                              'Delete',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                        return _buildAdminItemCard(filteredItems[index]);
                       },
                     ),
             ),

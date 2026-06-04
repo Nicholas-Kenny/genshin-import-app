@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../theme/app_colors.dart';
 import 'home_page.dart';
 import 'catalog_page.dart';
 import 'inventory_page.dart';
 import 'cart_page.dart';
 import 'profile_page.dart';
-import 'admin_page.dart'; // Impor halaman admin kamu
+import 'admin_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  String _role = 'customer'; // Default role sebelum memuat data
+  String _role = 'customer';
 
   @override
   void initState() {
@@ -30,7 +31,6 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  // Ambil data role yang disimpan saat login
   void _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -38,39 +38,60 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  // 1. DAFTAR HALAMAN DINAMIS
   List<Widget> _getPages() {
     return [
-      const HomePage(),
-      const CatalogPage(initialFilter: 'All'),
-      const InventoryPage(),
-      const CartPage(),
-      if (_role == 'admin') const AdminPage(),
-      const ProfilePage(),
+      if (_role == 'customer') ...[
+        const HomePage(),
+        const CatalogPage(initialFilter: 'All'),
+        const CartPage(),
+        const InventoryPage(),
+        const ProfilePage(),
+      ],
+      if (_role == 'admin') ...[const AdminPage(), const ProfilePage()],
     ];
   }
 
   List<BottomNavigationBarItem> _getNavItems() {
     return [
-      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.menu_book),
-        label: 'Catalog',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.inventory_2),
-        label: 'Inventory',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart),
-        label: 'Cart',
-      ),
-      if (_role == 'admin')
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.admin_panel_settings),
-          label: 'Admin Panel',
+      if (_role == 'customer') ...const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: 'Home',
         ),
-      const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.menu_book_outlined),
+          activeIcon: Icon(Icons.menu_book),
+          label: 'Catalog',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart_outlined),
+          activeIcon: Icon(Icons.shopping_cart),
+          label: 'Cart',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.inventory_2_outlined),
+          activeIcon: Icon(Icons.inventory_2),
+          label: 'Inventory',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ],
+      if (_role == 'admin') ...const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.admin_panel_settings_outlined),
+          activeIcon: Icon(Icons.admin_panel_settings),
+          label: 'Admin',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          activeIcon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ],
     ];
   }
 
@@ -84,22 +105,64 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final pages = _getPages();
     final navItems = _getNavItems();
+    final textTheme = Theme.of(context).textTheme;
 
-    // Jaga-jaga jika terjadi pergeseran indeks setelah logout/login beda akun
     if (_selectedIndex >= pages.length) {
       _selectedIndex = 0;
     }
 
     return Scaffold(
-      body: pages[_selectedIndex], // Menampilkan halaman aktif sesuai indeks
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        backgroundColor: const Color(0xFF15151E),
-        selectedItemColor: const Color(0xFFD4AF37),
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: navItems, // Menggunakan daftar tombol dinamis
+      appBar: AppBar(
+        backgroundColor: AppColors.bg2,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'GENSHIN IMPORT',
+              style: textTheme.headlineSmall?.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.highlight,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: pages[_selectedIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(color: AppColors.primaryBlue, width: 1.0),
+          ),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          backgroundColor: AppColors.bgBlue,
+          selectedItemColor: AppColors.highlight,
+          unselectedItemColor: AppColors.greyText,
+          type: BottomNavigationBarType.fixed,
+          selectedLabelStyle: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+          ),
+          unselectedLabelStyle: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
+          items: navItems,
+        ),
       ),
     );
   }

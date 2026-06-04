@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'catalog_page.dart';
+import '../theme/app_colors.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
-  // Fungsi untuk pindah ke halaman catalog dengan membawa filter
   void _goToCatalog(BuildContext context, String filter) {
     Navigator.push(
       context,
@@ -16,61 +16,82 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Genshin Import',
-          style: TextStyle(
-            color: Color(0xFFD4AF37),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      backgroundColor: AppColors.bgBlue,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Ad astra abyssosque,\nTraveler!',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              style: textTheme.headlineLarge?.copyWith(
+                color: AppColors.highlight,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            const SizedBox(height: 12),
+            Text(
               'Welcome to your one-stop armory for weapons and artifacts. Equip the best, conquer the unknown.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryText,
+              ),
             ),
-            const SizedBox(height: 30),
-
-            // Card 1: All Items
-            _buildPromoCard(
-              title: 'Browse Catalog',
-              subtitle: 'See everything Teyvat has to offer.',
-              icon: Icons.auto_awesome,
-              onTap: () => _goToCatalog(context, 'All'),
+            const SizedBox(height: 32),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: InkWell(
+                onTap: () => _goToCatalog(context, 'All'),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 24,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.highlight,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.highlight.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Browse Catalog',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.bgBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-
-            // Card 2: Weapons
-            _buildPromoCard(
-              title: 'Browse Weapons',
-              subtitle: 'Every legend needs the right weapon. Find yours.',
-              icon: Icons.colorize, // Icon pedang (mendekati)
+            const SizedBox(height: 32),
+            _buildCategoryCard(
+              context: context, // 👈 kirim context
+              title: 'Every legend needs the right weapon.',
+              subtitle: 'Find yours.',
+              buttonText: 'Browse Weapons',
+              imagePath: 'assets/images/browse_weapon.png',
               onTap: () => _goToCatalog(context, 'Weapons'),
             ),
             const SizedBox(height: 16),
-
-            // Card 3: Artifacts
-            _buildPromoCard(
-              title: 'Browse Artifacts',
-              subtitle: 'The right set can change everything.',
-              icon: Icons.diamond,
+            _buildCategoryCard(
+              context: context, // 👈 kirim context
+              title: 'The right set can change everything.',
+              subtitle: 'Browse yours.',
+              buttonText: 'Browse Artifacts',
+              imagePath: 'assets/images/browse_artifact.png',
               onTap: () => _goToCatalog(context, 'Artifacts'),
             ),
           ],
@@ -79,49 +100,88 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildPromoCard({
+  Widget _buildCategoryCard({
+    required BuildContext context, // 👈 tambahkan parameter ini
     required String title,
     required String subtitle,
-    required IconData icon,
+    required String buttonText,
+    required String imagePath,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2A2A38),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFD4AF37).withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 40, color: const Color(0xFFD4AF37)),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.primaryBlue,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: textTheme.headlineSmall?.copyWith(
+                    fontSize: 16,
+                    color: AppColors.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryText,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: AppColors.highlight,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      buttonText,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.highlight,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Image.asset(
+                imagePath,
+                width: 150,
+                height: 150,
+                fit: BoxFit.contain,
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

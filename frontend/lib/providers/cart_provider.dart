@@ -7,6 +7,9 @@ import '../services/api_service.dart';
 class CartItem {
   final int id;
   final String name;
+  final String category;
+  final String type;
+  final int stars;
   final int price;
   final String? imageUrl;
   final int stock;
@@ -15,6 +18,9 @@ class CartItem {
   CartItem({
     required this.id,
     required this.name,
+    required this.category,
+    required this.type,
+    required this.stars,
     required this.price,
     this.imageUrl,
     required this.stock,
@@ -28,6 +34,9 @@ class InventoryItem {
   final int price;
   final String? imageUrl;
   final DateTime purchasedAt;
+  final int stars;
+  final String type;
+  final String category;
 
   InventoryItem({
     required this.id,
@@ -35,6 +44,9 @@ class InventoryItem {
     required this.price,
     this.imageUrl,
     required this.purchasedAt,
+    this.stars = 4,
+    this.type = 'Item',
+    this.category = 'General',
   });
 }
 
@@ -70,6 +82,9 @@ class CartProvider extends ChangeNotifier {
             CartItem(
               id: e['item_id'] as int,
               name: e['name'].toString(),
+              category: e['category']?.toString() ?? 'Unknown',
+              type: e['type']?.toString() ?? '-',
+              stars: e['stars'] != null ? (e['stars'] as num).toInt() : 4,
               price: (e['price'] as num).toInt(),
               imageUrl: e['image_url']?.toString(),
               stock: (e['stock'] as num).toInt(),
@@ -109,6 +124,9 @@ class CartProvider extends ChangeNotifier {
               purchasedAt: e['purchased_at'] != null
                   ? DateTime.parse(e['purchased_at'].toString())
                   : DateTime.now(),
+              stars: e['stars'] != null ? (e['stars'] as num).toInt() : 4,
+              type: e['type']?.toString() ?? 'Item',
+              category: e['category']?.toString() ?? 'General',
             ),
           );
         }
