@@ -6,10 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // TIPS: Jika running di Emulator Android, ganti localhost menjadi 10.0.2.2
   static const String baseUrl = "http://localhost:3000/api";
 
-  // 1. LOGIN LOKAL
   static Future<bool> login(String username, String password) async {
     try {
       final response = await http.post(
@@ -33,7 +31,6 @@ class ApiService {
     }
   }
 
-  // 2. LOGIN VIA EXTERNAL OAUTH (GOOGLE) -> FITUR TAMBAHAN UNTUK REQUIREMENT
   static Future<bool> loginWithGoogle(String idToken) async {
     try {
       final response = await http.post(
@@ -56,7 +53,6 @@ class ApiService {
     }
   }
 
-  // 3. REGISTER LOKAL
   static Future<bool> register(
     String username,
     String email,
@@ -84,7 +80,6 @@ class ApiService {
     }
   }
 
-  // 4. RETRIEVE - GET ALL ITEMS (Diubah ke static agar konsisten)
   static Future<List<dynamic>> getItems() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/items'));
@@ -100,14 +95,12 @@ class ApiService {
     }
   }
 
-  // 5. LOGOUT
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('role');
   }
 
-  // 6. CREATE - ADD ITEM (ADMIN)
   static Future<bool> addItem({
     required String name,
     required String type,
@@ -163,7 +156,6 @@ class ApiService {
     }
   }
 
-  // 7. UPDATE - EDIT ITEM (ADMIN) -> FITUR TAMBAHAN UNTUK REQUIREMENT
   static Future<bool> updateItem({
     required int id,
     required String name,
@@ -228,8 +220,6 @@ class ApiService {
       return false;
     }
   }
-
-  // 8. DELETE - DELETE ITEM (ADMIN)
   static Future<bool> deleteItem(int id) async {
     try {
       final prefs = await SharedPreferences.getInstance();

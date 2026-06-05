@@ -72,34 +72,51 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final bool canPop = Navigator.canPop(context);
     return Scaffold(
       backgroundColor: AppColors.bgBlue,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    'Teyvat Market',
-                    style: textTheme.displayLarge?.copyWith(
+            const SizedBox(height: 10),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                if (canPop)
+                  Positioned(
+                    left: 16,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new),
                       color: AppColors.highlight,
+                      iconSize: 22,
+                      onPressed: () => Navigator.pop(context),
+                      splashRadius: 24,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Equip your journey with the finest gears.',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontSize: 16,
-                      color: AppColors.primaryText,
-                    ),
-                    textAlign: TextAlign.center,
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Teyvat Market',
+                        style: textTheme.displayLarge?.copyWith(
+                          color: AppColors.highlight,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Equip your journey with the finest gears.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: AppColors.primaryText,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             Padding(
