@@ -50,7 +50,7 @@ CREATE TABLE `inventory` (
 
 -- Insert Default Admin Account (Password hashed using bcrypt 'admin123')
 INSERT INTO `users` (`username`, `email`, `password`, `role`) VALUES
-('admin', 'admin@gmail.com', '$2b$10$O0Fq/mFqj6rBfT/M5y7PneM9lY2O6fL7rC2/o9iL6zG7JqXWqGg2q', 'admin')
+('admin', 'admin@gmail.com', '$2b$10$8ys/i0AOFbD0WEeIDHx36OnlMG15IevjNYMfg.sQsP4w1JaIW8S5u', 'admin')
 ON DUPLICATE KEY UPDATE `id`=`id`;
 
 -- Insert Sample Items
