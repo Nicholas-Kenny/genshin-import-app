@@ -161,7 +161,7 @@ exports.getInventory = (req, res) => {
   const userId = req.user.id;
 
   const query = `
-    SELECT inv.id AS inventory_id, inv.item_id, i.name, i.type, i.category, i.image_url, inv.quantity, inv.purchased_at 
+    SELECT inv.id AS inventory_id, inv.item_id, i.name, i.type, i.category, i.image_url, i.stars, i.price, inv.quantity, inv.purchased_at 
     FROM inventory inv 
     JOIN items i ON inv.item_id = i.id 
     WHERE inv.user_id = ?

@@ -170,6 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 8),
                     _buildTextField(
                       hint: "Enter your Username",
+                      isUsername: true,
                       onSaved: (v) => username = v!,
                     ),
                     const SizedBox(height: 20),
@@ -269,6 +270,7 @@ class _LoginPageState extends State<LoginPage> {
     required String hint,
     bool obscure = false,
     bool isPassword = false,
+    bool isUsername = false,
     Function(String?)? onSaved,
   }) {
     final textTheme = Theme.of(context).textTheme;
@@ -302,9 +304,14 @@ class _LoginPageState extends State<LoginPage> {
               )
             : null,
       ),
-      validator: (v) => v == null || v.isEmpty
-          ? 'Required field'
-          : (isPassword && v.length < 8 ? 'Min 8 chars' : null),
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'Required field';
+        if (isPassword && v.length < 8) return 'Min 8 chars';
+        if (isUsername && !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
+          return 'No spaces or special characters allowed';
+        }
+        return null;
+      },
       onSaved: onSaved,
     );
   }

@@ -128,6 +128,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     const SizedBox(height: 8),
                     _buildField(
                       hint: "Enter Username",
+                      isUsername: true,
                       onSaved: (v) => username = v!,
                     ),
                     const SizedBox(height: 20),
@@ -198,6 +199,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildField({
     required String hint,
     bool isPassword = false,
+    bool isUsername = false,
     Function(String?)? onSaved,
   }) {
     final textTheme = Theme.of(context).textTheme;
@@ -226,9 +228,14 @@ class _RegisterPageState extends State<RegisterPage> {
               )
             : null,
       ),
-      validator: (v) => v == null || v.isEmpty
-          ? 'Required'
-          : (isPassword && v.length < 8 ? 'Min 8 characters' : null),
+      validator: (v) {
+        if (v == null || v.isEmpty) return 'Required field';
+        if (isPassword && v.length < 8) return 'Min 8 chars';
+        if (isUsername && !RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v)) {
+          return 'No spaces or special characters allowed';
+        }
+        return null;
+      },
       onSaved: onSaved,
     );
   }
