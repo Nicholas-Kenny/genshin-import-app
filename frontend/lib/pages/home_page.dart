@@ -75,7 +75,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             _buildCategoryCard(
-              context: context, // 👈 kirim context
+              context: context,
               title: 'Every legend needs the right weapon.',
               subtitle: 'Find yours.',
               buttonText: 'Browse Weapons',
@@ -84,7 +84,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildCategoryCard(
-              context: context, // 👈 kirim context
+              context: context,
               title: 'The right set can change everything.',
               subtitle: 'Browse yours.',
               buttonText: 'Browse Artifacts',
@@ -98,7 +98,7 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildCategoryCard({
-    required BuildContext context, // 👈 tambahkan parameter ini
+    required BuildContext context,
     required String title,
     required String subtitle,
     required String buttonText,
