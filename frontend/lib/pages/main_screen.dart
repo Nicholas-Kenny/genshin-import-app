@@ -20,6 +20,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   String _role = 'customer';
+  String _catalogFilter = 'All';
 
   @override
   void initState() {
@@ -38,11 +39,21 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _navigateToCatalog(String filter) {
+    setState(() {
+      _catalogFilter = filter;
+      _selectedIndex = 1;
+    });
+  }
+
   List<Widget> _getPages() {
     return [
       if (_role == 'customer') ...[
-        const HomePage(),
-        const CatalogPage(initialFilter: 'All'),
+        HomePage(onBrowse: _navigateToCatalog),
+        CatalogPage(
+          key: ValueKey(_catalogFilter),
+          initialFilter: _catalogFilter,
+        ),
         const CartPage(),
         const InventoryPage(),
         const ProfilePage(),

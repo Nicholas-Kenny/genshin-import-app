@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'catalog_page.dart';
 import '../theme/app_colors.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final Function(String filter)? onBrowse;
+  const HomePage({Key? key, this.onBrowse}) : super(key: key);
 
   void _goToCatalog(BuildContext context, String filter) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CatalogPage(initialFilter: filter),
-      ),
-    );
+    if (onBrowse != null) {
+      onBrowse!(filter);
+    }
   }
 
   @override
