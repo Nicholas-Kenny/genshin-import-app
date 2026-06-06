@@ -55,7 +55,30 @@ ON DUPLICATE KEY UPDATE `id`=`id`;
 
 -- Insert Sample Items
 INSERT INTO `items` (`name`, `type`, `category`, `description`, `stock`, `price`, `stars`, `image_url`) VALUES
-('Primogems Pack', 'Currency', 'Premium', 'Essential currency used to make wishes for characters and weapons.', 999, 15000.00, 5, NULL),
-('Intertwined Fate', 'Wish', 'Item', 'A fateful stone that connects dreams. Used for Limited Banners.', 500, 25000.00, 5, NULL),
-('Acquaint Fate', 'Wish', 'Item', 'A fateful stone that connects dreams. Used for Standard Banners.', 300, 20000.00, 5, NULL),
-('Wolf\'s Gravestone', 'Weapon', 'Claymore', 'A longsword used by the Wolf Knight. Increases ATK significantly.', 10, 150000.00, 5, NULL);
+
+-- WEAPONS
+('Wolf\'s Gravestone', 'Claymore', 'Weapons',
+'A longsword used by the Wolf Knight. Once just a heavy sheet of iron, it became endowed with legendary power through his bond with wolves. Greatly increases ATK for the whole party.',
+10, 150000, 5,
+'http://localhost:3000/uploads/wolfgravestone.jpg'),
+
+('Aquila Favonia', 'Sword', 'Weapons',
+'The soul of the Knights of Favonius. Millennia later, it still calls on the winds of swift justice. Increases ATK and regenerates HP when the wielder takes damage.',
+7, 175000, 5,
+'http://localhost:3000/uploads/aquilafavonia.webp'),
+
+('Engulfing Lightning', 'Polearm', 'Weapons',
+'A polearm that carries the will of an Electro Archon. Increases ATK based on Energy Recharge and restores Energy after using an Elemental Burst.',
+5, 160000, 5,
+'http://localhost:3000/uploads/engulfinglightning.jpg'),
+
+-- ARTIFACTS
+('Viridescent Venerer\'s Diadem', 'Circlet of Logos', 'Artifacts',
+'A crown woven from windswept petals. Part of the Viridescent Venerer set — increases Anemo DMG and enhances Swirl reactions while shredding enemy Elemental RES.',
+25, 35000, 4,
+'http://localhost:3000/uploads/ViridescentVenererDiadem.webp'),
+
+('Emblem of Severed Fate - Storm Cage', 'Sands of Eon', 'Artifacts',
+'An ornate timepiece from Inazuma\'s Momiji-Dyed Court. Part of the Emblem of Severed Fate set — boosts Energy Recharge and scales Elemental Burst DMG.',
+15, 50000, 5, 
+'http://localhost:3000/uploads/stormcage.webp');
